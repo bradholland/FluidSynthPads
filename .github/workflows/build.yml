@@ -28,14 +28,17 @@ jobs:
       with:
         image: arm64v8/ubuntu:latest
         options: --platform linux/arm64
+        shell: bash
         run: |
           set -ex
+
+          # We should be in /github/workspace - verify location
+          cd /github/workspace || exit 1
           
-          # Debug: Show workspace directory structure before we start
+          # Debug: Show workspace directory structure
           echo "Workspace directory contents:"
           pwd
           ls -la
-          ls -la source/
           
           # Install dependencies
           apt-get update
