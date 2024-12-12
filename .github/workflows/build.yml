@@ -27,18 +27,25 @@ jobs:
       uses: addnab/docker-run-action@v3
       with:
         image: arm64v8/ubuntu:latest
-        options: --platform linux/arm64
+        options: |
+          --platform linux/arm64
+          -v ${GITHUB_WORKSPACE}:/build
+        shell: bash
         run: |
           set -ex
           
-          # Debug: Show initial directory
-          echo "Starting in:"
+          # Show initial working directory
+          echo "Starting in directory:"
           pwd
-          ls -la
           
           # Install dependencies
           apt-get update
           apt-get install -y build-essential pkg-config wget p7zip-full git cmake libglib2.0-dev libasound2-dev lv2-dev
+          
+          # Change to our mounted build directory
+          cd /build
+          echo "Contents of /build:"
+          ls -la
           
           # Build latest FluidSynth from source in /tmp
           cd /tmp
@@ -51,14 +58,15 @@ jobs:
           make install
           ldconfig
           
-          # Go back to the correct directory
-          cd $GITHUB_WORKSPACE
-          echo "Building plugin in:"
+          # Return to build directory
+          cd /build
+          echo "Building plugin in /build:"
           pwd
           ls -la
           
           # Download soundfont
-          cd FluidSynthPads.lv2 || mkdir FluidSynthPads.lv2
+          mkdir -p FluidSynthPads.lv2
+          cd FluidSynthPads.lv2
           wget https://download.linuxaudio.org/musical-instrument-libraries/sf2/fluidr3-splitted/fluidr3gm_synthpad.sf2.tar.7z
           7z x fluidr3gm_synthpad.sf2.tar.7z
           7z x fluidr3gm_synthpad.sf2.tar
