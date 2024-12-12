@@ -27,16 +27,16 @@ jobs:
       uses: addnab/docker-run-action@v3
       with:
         image: arm64v8/ubuntu:latest
-        options: --platform linux/arm64
+        options: |
+          --platform linux/arm64
+          -v "${{ github.workspace }}:/workspace"
+        workdir: /workspace
         shell: bash
         run: |
           set -ex
-
-          # We should be in /github/workspace - verify location
-          cd /github/workspace || exit 1
           
           # Debug: Show workspace directory structure
-          echo "Workspace directory contents:"
+          echo "Current directory:"
           pwd
           ls -la
           
@@ -56,7 +56,7 @@ jobs:
           ldconfig
           
           # Return to workspace where our code is
-          cd /github/workspace
+          cd /workspace
           echo "Building plugin in:"
           pwd
           ls -la
