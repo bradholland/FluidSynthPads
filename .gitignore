@@ -1,0 +1,19 @@
+# Build artifacts
+*.o
+*.so
+exporter
+
+# Downloaded and extracted files
+*.sf2
+*.tar
+*.tar.7z
+*.7z
+
+# macOS
+.DS_Store
+
+# Backup
+backup/
+
+# IDE
+.kdev_include_paths
