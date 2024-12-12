@@ -29,7 +29,8 @@ jobs:
         image: arm64v8/ubuntu:latest
         options: --platform linux/arm64
         run: |
-          # Debug: Show current directory
+          # Debug: Show working directory structure
+          echo "Initial directory:"
           pwd
           ls -la
 
@@ -37,6 +38,9 @@ jobs:
           apt-get update
           apt-get install -y build-essential pkg-config wget p7zip-full git cmake libglib2.0-dev libasound2-dev lv2-dev
 
+          # Remember current directory
+          WORKDIR=$(pwd)
+          
           # Build latest FluidSynth from source
           git clone https://github.com/FluidSynth/fluidsynth.git
           cd fluidsynth
@@ -46,7 +50,9 @@ jobs:
           make -j$(nproc)
           make install
           ldconfig
-          cd /github/workspace  # Return to the root workspace directory
+          
+          # Return to working directory
+          cd $WORKDIR
           
           # Debug: Verify we're in the correct directory
           echo "Current directory after FluidSynth build:"
