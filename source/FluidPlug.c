@@ -20,11 +20,11 @@
 #include <string.h>
 
 #include <fluidsynth.h>
-#include <lv2/lv2plug.in/ns/lv2core/lv2.h>
-#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
-#include <lv2/lv2plug.in/ns/ext/atom/util.h>
-#include <lv2/lv2plug.in/ns/ext/midi/midi.h>
-#include <lv2/lv2plug.in/ns/ext/urid/urid.h>
+#include <lv2/core/lv2.h>
+#include <lv2/atom/atom.h>
+#include <lv2/atom/util.h>
+#include <lv2/midi/midi.h>
+#include <lv2/urid/urid.h>
 
 #ifndef FLUIDPLUG_LABEL
 #error FLUIDPLUG_LABEL undefined
@@ -63,7 +63,7 @@ typedef enum {
     kPortProgram,
 } FluidSynthPluginPorts;
 
-static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, double sampleRate, const char* bundlePath, const LV2_Feature* const* features)
+static LV2_Handle lv2_instantiate(const LV2_Descriptor* descriptor, double sampleRate, const char* bundlePath, const LV2_Feature* const* features)
 {
     const LV2_URID_Map* uridMap = NULL;
 
@@ -89,10 +89,7 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
     if (settings == NULL)
         goto cleanup;
 
-    //fluid_settings_setint(settings, "synth.audio-channels", use16Outs ? 16 : 1);
-    //fluid_settings_setint(settings, "synth.audio-groups", use16Outs ? 16 : 1);
     fluid_settings_setnum(settings, "synth.sample-rate", sampleRate);
-    //fluid_settings_setint(settings, "synth.parallel-render", 1);
     fluid_settings_setint(settings, "synth.threadsafe-api", 0);
 
     fluid_synth_t* const synth = new_fluid_synth(settings);
@@ -102,7 +99,9 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
 
     fluid_synth_set_gain(synth, 1.0f);
     fluid_synth_set_polyphony(synth, 32);
-    fluid_synth_set_sample_rate(synth, (float)sampleRate);
+    
+    // Instead of using deprecated fluid_synth_set_sample_rate, we set it in settings
+    // fluid_synth_set_sample_rate(synth, (float)sampleRate);
 
 #ifdef __arm__
     // let's be nice to the poor cpus...
@@ -129,20 +128,12 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
     if (sfont == NULL)
         goto cleanup_synth;
 
-    size_t count;
-#if FLUIDSYNTH_VERSION_MAJOR < 2
-    fluid_preset_t preset;
-
-    sfont->iteration_start(sfont);
-    for (count = 0; sfont->iteration_next(sfont, &preset) != 0;)
-        ++count;
-#else
-    fluid_preset_t *preset = NULL;
+    size_t count = 0;
+    fluid_preset_t* preset = NULL;
 
     fluid_sfont_iteration_start(sfont);
     for (count = 0; (preset = fluid_sfont_iteration_next(sfont)) != NULL;)
         ++count;
-#endif
 
     if (count == 0)
         goto cleanup_synth;
@@ -152,19 +143,9 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
     if (programs == NULL)
         goto cleanup_synth;
 
-#if FLUIDSYNTH_VERSION_MAJOR < 2
-    sfont->iteration_start(sfont);
-    for (count = 0; sfont->iteration_next(sfont, &preset) != 0;)
-    {
-        const BankProgram bp = {
-            preset.get_banknum(&preset),
-            preset.get_num(&preset)
-        };
-        programs[count++] = bp;
-    }
-#else
     fluid_sfont_iteration_start(sfont);
-    for (count = 0; (preset = fluid_sfont_iteration_next(sfont)) != NULL;)
+    count = 0;
+    while ((preset = fluid_sfont_iteration_next(sfont)) != NULL)
     {
         const BankProgram bp = {
             fluid_preset_get_banknum(preset),
@@ -172,7 +153,6 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
         };
         programs[count++] = bp;
     }
-#endif
 
     fluid_synth_program_select(synth, 0, synthId, programs[0].bank, programs[0].prog);
 
@@ -189,6 +169,7 @@ static LV2_Handle lv2_instantiate(const struct _LV2_Descriptor* descriptor, doub
 
     // null control values, connection optional
     data->controlProgram = NULL;
+    data->controlLevel  = NULL;
 
     // boostrap synth engine
     float l[1024];
@@ -253,19 +234,15 @@ static void lv2_run(LV2_Handle instance, uint32_t frames)
 
     if (data->needsReset)
     {
-        /*
-        for (int i=0; i<16; ++i)
-        {
-            fluid_synth_all_notes_off(data->synth, i);
-            fluid_synth_all_sounds_off(data->synth, i);
-        }
-        */
         fluid_synth_all_notes_off(data->synth, 0);
         fluid_synth_all_sounds_off(data->synth, 0);
         data->needsReset = false;
     }
 
-    fluid_synth_set_gain(data->synth, *data->controlLevel);
+    if (data->controlLevel != NULL)
+    {
+        fluid_synth_set_gain(data->synth, *data->controlLevel);
+    }
 
     if (data->controlProgram != NULL)
     {
@@ -338,7 +315,7 @@ static void lv2_run(LV2_Handle instance, uint32_t frames)
 
         case 0xD0: {
             const uint8_t pressure = mdata[1];
-            fluid_synth_channel_pressure(data->synth, channel, pressure);;
+            fluid_synth_channel_pressure(data->synth, channel, pressure);
         } break;
 
         case 0xE0: {
@@ -363,19 +340,19 @@ static void lv2_cleanup(LV2_Handle instance)
     free(data);
 }
 
+static const LV2_Descriptor sDescriptor = {
+    .URI            = FLUIDPLUG_URI,
+    .instantiate    = lv2_instantiate,
+    .connect_port   = lv2_connect_port,
+    .activate       = lv2_activate,
+    .run           = lv2_run,
+    .deactivate     = NULL,
+    .cleanup        = lv2_cleanup,
+    .extension_data = NULL
+};
+
 LV2_SYMBOL_EXPORT
 const LV2_Descriptor* lv2_descriptor(uint32_t index)
 {
-    static const LV2_Descriptor sDescriptor = {
-        .URI            = FLUIDPLUG_URI,
-        .instantiate    = lv2_instantiate,
-        .connect_port   = lv2_connect_port,
-        .activate       = lv2_activate,
-        .run            = lv2_run,
-        .deactivate     = NULL,
-        .cleanup        = lv2_cleanup,
-        .extension_data = NULL,
-    };
-
     return (index == 0) ? &sDescriptor : NULL;
 }
