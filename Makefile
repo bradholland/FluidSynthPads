@@ -53,7 +53,8 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2:
 		wget https://download.linuxaudio.org/musical-instrument-libraries/sf2/fluidr3-splitted/fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar && \
-		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2)
+		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2 && \
+		rm -f *.tar.7z *.tar)
 
 # ---------------------------------------------------------------------------------------------------------------------
 
