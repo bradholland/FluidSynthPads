@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest-arm64
+    runs-on: self-hosted
     
     steps:
     - uses: actions/checkout@v4
@@ -30,10 +30,8 @@ jobs:
         sudo ldconfig
         cd ../..
 
-    - name: Download Soundfont and Build
-      run: |
-        make download
-        make
+    - name: Build FluidSynthPads
+      run: make
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
