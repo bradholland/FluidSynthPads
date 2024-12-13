@@ -1,14 +1,11 @@
     ] ;
 
-    mod:brand "FluidGM" ;
-    mod:label "xLABELx" ;
-
     doap:name "xLABELx" ;
     doap:license "LGPL" ;
 
     doap:maintainer [
-        foaf:name "falkTX" ;
-        foaf:homepage <https://github.com/falkTX/FluidPlug> ;
+        foaf:name "Isla Instruments" ;
+        foaf:homepage <https://github.com/IslaInstruments/FluidSynthPads> ;
     ] ;
 
     lv2:minorVersion 2 ;
