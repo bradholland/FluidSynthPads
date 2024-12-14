@@ -1,20 +1,21 @@
 #!/usr/bin/make -f
 # Makefile for FluidPlug #
 # ---------------------- #
-# Created by falkTX
 # Modified for FluidSynthPads only
 
 include Makefile.mk
 
 DESTDIR =
 PREFIX  = /usr
+BUILD_DIR = build
 
 # ---------------------------------------------------------------------------------------------------------------------
 
 all: build
 
 clean:
-	rm -f *.lv2/*.so exporter
+	rm -f exporter
+	rm -rf $(BUILD_DIR)
 
 distclean: clean
 	rm -f *.lv2/README
@@ -25,48 +26,51 @@ distclean: clean
 install:
 	install -d $(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
 	install -m 644 \
-		FluidSynthPads.lv2/*.sf2 \
-		FluidSynthPads.lv2/*.so \
-		FluidSynthPads.lv2/*.ttl \
+		$(BUILD_DIR)/FluidSynthPads.lv2/*.sf2 \
+		$(BUILD_DIR)/FluidSynthPads.lv2/*.so \
+		$(BUILD_DIR)/FluidSynthPads.lv2/*.ttl \
 		$(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
-	cp -r FluidSynthPads.lv2/modgui  $(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
 
 # ---------------------------------------------------------------------------------------------------------------------
 
 build: FluidSynthPads
 
-download: FluidSynthPads.lv2/FluidPlug.sf2
+download: $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2
 
 # ---------------------------------------------------------------------------------------------------------------------
 
 FluidSynthPads: \
-	FluidSynthPads.lv2/FluidPlug.sf2 \
-	FluidSynthPads.lv2/FluidPlug.so \
-	FluidSynthPads.lv2/FluidPlug.ttl \
-	FluidSynthPads.lv2/manifest.ttl
+	$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2 \
+	$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so \
+	$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl \
+	$(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-FluidSynthPads.lv2/FluidPlug.sf2:
-	-@mkdir -p $(shell dirname $@)
-	(cd FluidSynthPads.lv2 && \
+$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2:
+	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
+	(cd $(BUILD_DIR)/FluidSynthPads.lv2 && \
 		wget https://download.linuxaudio.org/musical-instrument-libraries/sf2/fluidr3-splitted/fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar && \
-		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2)
+		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2 && \
+		rm -f *.tar.7z *.tar)
 
 # ---------------------------------------------------------------------------------------------------------------------
 
-%.lv2/FluidPlug.so: source/FluidPlug.c
-	$(CC) $< -DFLUIDPLUG_LABEL=\"$*\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
+$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
+	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
+	$(CC) $< -DFLUIDPLUG_LABEL=\"FluidSynthPads\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
-%.lv2/FluidPlug.ttl:
-	sed "s/xLABELx/$*/" source/FluidPlug.ttl.p1 > $*.lv2/FluidPlug.ttl
-	cd $*.lv2 && ../exporter >> FluidPlug.ttl
-	sed "s/xLABELx/$*/" source/FluidPlug.ttl.p2 >> $*.lv2/FluidPlug.ttl
+$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter
+	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && cp ../../source/FluidPlug.ttl.p1 FluidPlug.ttl
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && ../../exporter >> FluidPlug.ttl
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && cat ../../source/FluidPlug.ttl.p2 >> FluidPlug.ttl
 
-%.lv2/manifest.ttl:
-	sed "s/xLABELx/$*/" source/manifest.ttl.in > $*.lv2/manifest.ttl
+$(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl: source/manifest.ttl.in
+	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
+	sed "s/xLABELx/FluidSynthPads/" $< > $@
 
 # ---------------------------------------------------------------------------------------------------------------------
 
