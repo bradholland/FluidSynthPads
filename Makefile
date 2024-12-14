@@ -64,11 +64,10 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
 
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
-	cp $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2 FluidPlug.sf2
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && ../../exporter >> FluidPlug.ttl
 	sed "s/xLABELx/FluidSynthPads/" source/FluidPlug.ttl.p1 > $@
-	./exporter >> $@
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && ../../exporter >> FluidPlug.ttl
 	sed "s/xLABELx/FluidSynthPads/" source/FluidPlug.ttl.p2 >> $@
-	rm -f FluidPlug.sf2
 
 $(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl: source/manifest.ttl.in
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
