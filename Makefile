@@ -62,10 +62,6 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	$(CC) $< -DFLUIDPLUG_LABEL=\"FluidSynthPads\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
-# Build exporter first, then generate TTL files
-exporter: source/Exporter.c
-	$(CC) $< $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
-
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	cp $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2 FluidPlug.sf2
@@ -77,5 +73,10 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/Fl
 $(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl: source/manifest.ttl.in
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	sed "s/xLABELx/FluidSynthPads/" source/manifest.ttl.in > $@
+
+# ---------------------------------------------------------------------------------------------------------------------
+
+exporter: source/Exporter.c
+	$(CC) $< $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------

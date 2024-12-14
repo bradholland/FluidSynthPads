@@ -1,5 +1,7 @@
 #include <fluidsynth.h>
 
+// NOTE: this code doesn't have any error checks because it's going to be run just once
+
 int main()
 {
     fluid_settings_t* const settings = new_fluid_settings();
@@ -10,28 +12,20 @@ int main()
     fluid_synth_t* const synth = new_fluid_synth(settings);
     fluid_synth_set_gain(synth, 1.0f);
     fluid_synth_set_polyphony(synth, 32);
-    
+    fluid_synth_set_sample_rate(synth, 48000.0f);
+
     const int synthId = fluid_synth_sfload(synth, "./FluidPlug.sf2", 1);
-    if (synthId == FLUID_FAILED) {
-        fprintf(stderr, "Failed to load soundfont\n");
-        return 1;
-    }
 
     fluid_sfont_t* const sfont = fluid_synth_get_sfont_by_id(synth, synthId);
-    if (!sfont) {
-        fprintf(stderr, "Failed to get soundfont\n");
-        return 1;
-    }
 
     int count = 0;
     int bank = -1;
-    fluid_preset_t* preset;
-
-    fluid_sfont_iteration_start(sfont);
-    while ((preset = fluid_sfont_iteration_next(sfont)) != NULL)
+    fluid_preset_t preset;
+    sfont->iteration_start(sfont);
+    for (; sfont->iteration_next(sfont, &preset) != 0;)
     {
         ++count;
-        const int banknum = fluid_preset_get_banknum(preset) + 1;
+        const int banknum = preset.get_banknum(&preset)+1;
 
         if (bank == -2)
             continue;
@@ -46,10 +40,10 @@ int main()
     printf("        lv2:scalePoint [\n");
 
     int index = 0;
-    fluid_sfont_iteration_start(sfont);
-    while ((preset = fluid_sfont_iteration_next(sfont)) != NULL)
+    sfont->iteration_start(sfont);
+    for (; sfont->iteration_next(sfont, &preset) != 0; ++index)
     {
-        const char* const name = fluid_preset_get_name(preset);
+        const char* const name = preset.get_name(&preset);
 
         if (index != 0)
             printf("        ] , [\n");
@@ -58,22 +52,20 @@ int main()
 
 #if 1
         if (bank == -2)
-            printf("%03i:", fluid_preset_get_banknum(preset) + 1);
+            printf("%03i:", preset.get_banknum(&preset)+1);
 
         if (count > 100)
-            printf("%03i", index + 1);
+            printf("%03i", index+1);
         else if (count > 10)
-            printf("%02i", index + 1);
+            printf("%02i", index+1);
         else
-            printf("%i", index + 1);
+            printf("%i", index+1);
 
         printf(" %s\" ;\n", name);
 #else
         printf("%s\" ;\n", name);
 #endif
         printf("            rdf:value %i ;\n", index);
-        
-        index++;
     }
 
     printf("        ] ;\n");
