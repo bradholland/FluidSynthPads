@@ -18,10 +18,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 distclean: clean
-	rm -f *.lv2/README
-	rm -f *.lv2/*.sf2
-	rm -f *.lv2/*.tar
-	rm -f *.lv2/*.tar.7z
+
 
 install:
 	install -d $(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
@@ -64,7 +61,7 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
 
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
-	cd $(BUILD_DIR)/FluidSynthPads.lv2 && cp ../../source/FluidPlug.ttl.p1 FluidPlug.ttl
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && cp ../../source/FluidPlug.ttl.p1 ./FluidPlug.ttl
 	cd $(BUILD_DIR)/FluidSynthPads.lv2 && ../../exporter >> FluidPlug.ttl
 	cd $(BUILD_DIR)/FluidSynthPads.lv2 && cat ../../source/FluidPlug.ttl.p2 >> FluidPlug.ttl
 
