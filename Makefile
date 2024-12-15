@@ -1,12 +1,10 @@
 #!/usr/bin/make -f
 # Makefile for FluidPlug #
 # ---------------------- #
-# Modified for FluidSynthPads only for Isla Instruments S2400
+# Modified for FluidSynthPads only
 
 include Makefile.mk
 
-DESTDIR =
-PREFIX  = /usr
 BUILD_DIR = build
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -17,21 +15,7 @@ clean:
 	rm -f exporter
 	rm -rf $(BUILD_DIR)
 
-distclean: clean
-
-install:
-	install -d $(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
-	install -m 644 \
-		$(BUILD_DIR)/FluidSynthPads.lv2/*.sf2 \
-		$(BUILD_DIR)/FluidSynthPads.lv2/*.so \
-		$(BUILD_DIR)/FluidSynthPads.lv2/*.ttl \
-		$(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
-
-# ---------------------------------------------------------------------------------------------------------------------
-
 build: FluidSynthPads
-
-download: $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -52,19 +36,15 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2:
 		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2 && \
 		rm -f *.tar.7z *.tar
 
-# ---------------------------------------------------------------------------------------------------------------------
-
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	$(CC) $< -DFLUIDPLUG_LABEL=\"FluidSynthPads\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
-	cd $(BUILD_DIR)/FluidSynthPads.lv2 && \
-		ln -sf FluidPlug.sf2 ./FluidPlug.sf2 && \
-		sed "s/xLABELx/FluidSynthPads/" ../../source/FluidPlug.ttl.p1 > FluidPlug.ttl && \
-		../../exporter >> FluidPlug.ttl && \
-		sed "s/xLABELx/FluidSynthPads/" ../../source/FluidPlug.ttl.p2 >> FluidPlug.ttl
+	sed "s/xLABELx/FluidSynthPads/" source/FluidPlug.ttl.p1 > $@
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && ../../exporter >> FluidPlug.ttl
+	sed "s/xLABELx/FluidSynthPads/" source/FluidPlug.ttl.p2 >> $@
 
 $(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl: source/manifest.ttl.in
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
