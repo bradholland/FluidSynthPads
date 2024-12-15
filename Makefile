@@ -1,12 +1,12 @@
 #!/usr/bin/make -f
 # Makefile for FluidPlug #
 # ---------------------- #
-# Created by falkTX
+# Created by falkTX  
 # Modified for FluidSynthPads only
 
 include Makefile.mk
 
-DESTDIR =
+DESTDIR = 
 PREFIX  = /usr
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ all: build
 clean:
 	rm -f *.lv2/*.so exporter
 
-distclean: clean
+distclean: clean  
 	rm -f *.lv2/README
 	rm -f *.lv2/*.sf2
 	rm -f *.lv2/*.tar
@@ -28,7 +28,7 @@ install:
 		FluidSynthPads.lv2/*.sf2 \
 		FluidSynthPads.lv2/*.so \
 		FluidSynthPads.lv2/*.ttl \
-		$(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
+		$(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2  
 	cp -r FluidSynthPads.lv2/modgui  $(DESTDIR)$(PREFIX)/lib/lv2/FluidSynthPads.lv2
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -58,11 +58,11 @@ FluidSynthPads.lv2/FluidPlug.sf2:
 # ---------------------------------------------------------------------------------------------------------------------
 
 %.lv2/FluidPlug.so: source/FluidPlug.c
-	$(CC) $&lt; -DFLUIDPLUG_LABEL=\"$*\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
+	$(CC) $< -DFLUIDPLUG_LABEL=\"$*\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
 %.lv2/FluidPlug.ttl:
 	sed "s/xLABELx/$*/" source/FluidPlug.ttl.p1 > $*.lv2/FluidPlug.ttl
-	cd $*.lv2 && ../exporter >> FluidPlug.ttl
+	cd $*.lv2 && ../exporter >> FluidPlug.ttl 
 	sed "s/xLABELx/$*/" source/FluidPlug.ttl.p2 >> $*.lv2/FluidPlug.ttl
 
 %.lv2/manifest.ttl:
@@ -71,6 +71,6 @@ FluidSynthPads.lv2/FluidPlug.sf2:
 # ---------------------------------------------------------------------------------------------------------------------
 
 exporter: source/Exporter.c
-	$(CC) $&lt; $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
+	$(CC) $< $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
