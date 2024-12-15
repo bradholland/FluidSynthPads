@@ -35,8 +35,6 @@ install:
 
 build: FluidSynthPads
 
-download: FluidSynthPads.lv2/FluidPlug.sf2
-
 # ---------------------------------------------------------------------------------------------------------------------
 
 FluidSynthPads: \
@@ -49,16 +47,18 @@ FluidSynthPads: \
 
 FluidSynthPads.lv2/FluidPlug.sf2:
 	-@mkdir -p $(shell dirname $@)
-	(cd FluidSynthPads.lv2 && \
-		wget https://download.linuxaudio.org/musical-instrument-libraries/sf2/fluidr3-splitted/fluidr3gm_synthpad.sf2.tar.7z && \
-		7z x fluidr3gm_synthpad.sf2.tar.7z && \
-		7z x fluidr3gm_synthpad.sf2.tar && \
-		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2)
+	@sf2_file=$$(find source -name "*.sf2" -print -quit); \
+	if [ -n "$$sf2_file" ]; then \
+		cp "$$sf2_file" FluidSynthPads.lv2/FluidPlug.sf2; \
+	else \
+		echo "No .sf2 file found in the /source folder"; \
+		exit 1; \
+	fi
 
 # ---------------------------------------------------------------------------------------------------------------------
 
 %.lv2/FluidPlug.so: source/FluidPlug.c
-	$(CC) $< -DFLUIDPLUG_LABEL=\"$*\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
+	$(CC) $&lt; -DFLUIDPLUG_LABEL=\"$*\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
 %.lv2/FluidPlug.ttl:
 	sed "s/xLABELx/$*/" source/FluidPlug.ttl.p1 > $*.lv2/FluidPlug.ttl
@@ -71,6 +71,6 @@ FluidSynthPads.lv2/FluidPlug.sf2:
 # ---------------------------------------------------------------------------------------------------------------------
 
 exporter: source/Exporter.c
-	$(CC) $< $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
+	$(CC) $&lt; $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) -o $@
 
 # ---------------------------------------------------------------------------------------------------------------------
