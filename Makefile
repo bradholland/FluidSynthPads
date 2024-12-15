@@ -45,12 +45,12 @@ FluidSynthPads: \
 
 $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2:
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
-	(cd $(BUILD_DIR)/FluidSynthPads.lv2 && \
+	cd $(BUILD_DIR)/FluidSynthPads.lv2 && \
 		wget https://download.linuxaudio.org/musical-instrument-libraries/sf2/fluidr3-splitted/fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar.7z && \
 		7z x fluidr3gm_synthpad.sf2.tar && \
 		mv fluidr3gm_synthpad.sf2 FluidPlug.sf2 && \
-		rm -f *.tar.7z *.tar)
+		rm -f *.tar.7z *.tar
 
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -58,14 +58,13 @@ $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.so: source/FluidPlug.c
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	$(CC) $< -DFLUIDPLUG_LABEL=\"FluidSynthPads\" $(BUILD_C_FLAGS) $(FLUIDSYNTH_FLAGS) $(LINK_FLAGS) $(FLUIDSYNTH_LIBS) $(SHARED) -o $@
 
-$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter
+$(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.ttl: source/FluidPlug.ttl.p1 source/FluidPlug.ttl.p2 exporter $(BUILD_DIR)/FluidSynthPads.lv2/FluidPlug.sf2
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
 	cd $(BUILD_DIR)/FluidSynthPads.lv2 && \
-		cp ../../source/FluidPlug.ttl.p1 ./FluidPlug.ttl && \
-		ln -sf FluidPlug.sf2 ./temp.sf2 && \
-		../../exporter >> ./FluidPlug.ttl && \
-		rm ./temp.sf2 && \
-		cat ../../source/FluidPlug.ttl.p2 >> ./FluidPlug.ttl
+		ln -sf FluidPlug.sf2 ./FluidPlug.sf2 && \
+		sed "s/xLABELx/FluidSynthPads/" ../../source/FluidPlug.ttl.p1 > FluidPlug.ttl && \
+		../../exporter >> FluidPlug.ttl && \
+		sed "s/xLABELx/FluidSynthPads/" ../../source/FluidPlug.ttl.p2 >> FluidPlug.ttl
 
 $(BUILD_DIR)/FluidSynthPads.lv2/manifest.ttl: source/manifest.ttl.in
 	mkdir -p $(BUILD_DIR)/FluidSynthPads.lv2
